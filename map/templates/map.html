@@ -252,7 +252,8 @@
               </div>
               <div id="layers" class="panel-collapse collapse in">
                 <div class="panel-body list-group">
-                  {%comment%}
+                  <span id='landlord_results'></span>
+{%comment%}
                   {% load crispy_forms_tags %}
                   {% crispy filter.form %}
 {%endcomment%}
@@ -399,6 +400,22 @@
       }
       var geojson_format = new ol.format.GeoJSON()
 
+      var registrations = new ol.layer.Vector({
+        title: 'Landlord Registrations',
+        projection: 'EPSG:4326',
+        //maxResolution: '6',
+        source: new ol.source.Vector({
+          format: new ol.format.GeoJSON(),
+          url: function(extent){
+            return "/landlord/bbox/"+extent.join(',')+"/"
+
+          },
+        style: styles['parcel'],
+        strategy: ol.loadingstrategy.bbox,
+        }),
+      });
+
+
       var parcels = new ol.layer.Vector({
         title: 'Parcels',
         projection: 'EPSG:4326',
@@ -409,10 +426,23 @@
             return "/parcel/bbox/"+extent.join(',')+"/"
 
           },
-        style: styles['parcel11'],
+        style:  new ol.style.Style({
+                fill: new ol.style.Stroke({
+                color: 'transparent'
+              })
+        }),
+        visible: false,
         strategy: ol.loadingstrategy.bbox,
         }),
       });
+
+      var searchPolygons = new ol.layer.Vector({
+              title: 'Search Results',
+              projection: 'EPSG:2965',
+              source: new ol.source.Vector(),
+              style: styles['search'],
+              minResolution: '.75',
+            });
 
 
 
@@ -429,23 +459,32 @@
               //   source: new ol.source.OSM(),
               //   opacity: 0.7
               // }),
+              // new ol.layer.Tile({
+              //   opacity: 1,
+              //   source: new ol.source.WMTS(options)
+              // }),
               new ol.layer.Tile({
-                opacity: 1,
-                source: new ol.source.WMTS(options)
+                visible: true,
+                preload: Infinity,
+                source: new ol.source.BingMaps({
+                  key: 'Ai7PF3vCUnfoc6BgOpQhQuTx7MVB0Hvrx-6nBbRMgo5geEY4cJz_XWGeEB4yJf1s',
+                  imagerySet: 'AerialWithLabels'
+                }),
               }),
               parcels,
+              registrations,
             ],
           //  overlays: [overlay],
             target: 'map',
             view: new ol.View({
-              center: [188266, 1649330],
-              zoom: 20,
+              center: [202560, 1655513],
+              //center: [188266, 1649330],
+              zoom: 18,
               maxZoom: 21,
               //maxZoom: 3, //doesn't work?
               projection: 'EPSG:2965'
             })
           });
-
           map.on('singleclick', function(evt) {
             var latlon = ol.proj.transform(evt.coordinate, 'EPSG:2965', 'EPSG:4326');
             lat = latlon[0]
@@ -459,20 +498,33 @@
             if (feature) {
               //alert(feature.values_.id);
               $.get('parcel/'+feature.values_.id+'/', function(data){
+                console.log(data)
                 parcel = data.features[0].properties;
+                //console.log(parcel);
               //image = '<img src="https://maps.googleapis.com/maps/api/streetview?size=300x300&key=AIzaSyDA2qmHbfbl1-I1BEshcKQxCgH7beKJDW0&location='+parcel.street_address+', Indianapolis, IN" width=300 height=300/>&nbsp;<br/><small>Image may not be accurate or current.</small>'
               image = '<img src="https://maps.googleapis.com/maps/api/streetview?size=300x300&key=AIzaSyByQgzT-jtL-deTc614MefENvE62ZqgnC4&location='+lon + ','+lat+'" allowfullscreen="" width=300 height=300/>&nbsp;<br/><small>Image may not be accurate or current.</small>'
               iframe = '<iframe src="https://www.google.com/maps/embed/v1/streetview?&key=AIzaSyABkapFATusLHbmOnndPBjx-JsGiO5TDkM&location='+lon + ','+lat+'" allowfullscreen="" height="300" width="300">';
               html = '<ul class="list-unstyled">'+
                 '<li>'+parcel.street_address+' '+parcel.zipcode+' (<a href="http://maps.indy.gov/AssessorPropertyCards.Reports.Service/Service.svc/PropertyCard/'+parcel.id+'">'+parcel.id+'</a>)</li>'+
-                '<li>Assessor Classification: '+parcel.property_class+'</li>'+
-                '<li>Improvement value: '+parcel.improvement_value+' Land Value: '+parcel.land_value+'</li>'+
-                '<li>Homestead exemption: '+parcel.homestead_exemption+'</li>'+
+                '<li>'+parcel.property_class+'</li>'+
+                '<li>Improvement value: '+parcel.improvement_value+'</li><li>Land Value: '+parcel.land_value+'</li>'+
+                '<li>Homestead exemption: '+parcel.homestead_exemption+'</li>'+parcel.registration_set+'</ul>'+
                 //iframe;
                 image;
               $('#properties').html(html);
             });
-
+            $.get('landlord/'+feature.values_.parcel+'/', function(data){
+              console.log(data)
+              registration = data.features[0].properties;
+              //console.log(registration);
+            html = '<ul class="list-unstyled">'+
+              '<li>Parcel: '+registration.parcel+'</li>'+
+              '<li>Registration: '+registration.record+' Expires: '+registration.expiration+'</li>'+
+              '<li>Landlord:'+registration.landlord+' '+registration.landlord_contact+'</li>'+
+              '<li>'+registration.manager+'</li> '+registration.manager_contact+'</li>'+
+              '</ul>'
+            $('#landlord_results').html(html);
+            });
             }
         });
       });
@@ -495,19 +547,13 @@
             ],
             "columns": [
                 { "title": 'Parcel Number',
-                  "data": "properties.parcel_number" },
+                  "data": "properties.id" },
                 { "title": 'Street Address',
                   "data": "properties.street_address" },
-                { "title": 'Has Building',
-                  "data": "properties.has_building" },
-                { "title": 'Interesting',
-                  "data": "properties.interesting" },
-                { "title": 'Demolition Order',
-                  "data": "properties.demolition_order" },
-                { "title": 'Repair Order',
-                  "data": "properties.repair_order" },
-                { "title": 'Notes',
-                  "data": "properties.notes" },
+                { "title": 'Zipcode',
+                  "data": "properties.zipcode" },
+                //{ "title": 'Landlord',
+                //  "data": "properties.landlord" },
             ]
         } );
 
@@ -516,31 +562,30 @@
     $('#top-search-box').submit(function(event){
       event.preventDefault();
       searchPolygons.getSource().clear();
-      $('#id_general_search').val($('#query').val()); //copy search value from top box to hidden element on form
-      $('#id_geometry_type').val('centroid'); // search results return centroids
+      //$('#id_general_search').val($('#query').val()); //copy search value from top box to hidden element on form
+      //$('#id_geometry_type').val('centroid'); // search results return centroids
       $.ajax({
-        url: '',
+        url: '/parcel/search/',
         type: "GET",
-        data: $('#SurplusSearchForm').serialize(),
+        data: {q:$('#query').val()},
         success: function(json){
           searchPolygons.getSource().addFeatures(geojson_format.readFeatures(json));
-          var extent = searchPolygons.getSource().getExtent();
-          if(extent[0]!='Infinity'){
-            map.getView().fit(extent, map.getSize())
+          var extent = ol.proj.transformExtent(searchPolygons.getSource().getExtent(), ol.proj.get('EPSG:4326'), ol.proj.get('EPSG:2965'));
+          if(extent[0]!='Infinity' | !isNaN(extent[0])){
+          //  alert(extent);
+            //map.getView().fit(extent, map.getSize())
             console.log(json.features);
             //$('#search_results').DataTable().destory(remove=False);
             $('#search_results').DataTable().clear();
             $('#search_results').DataTable().rows.add(json.features).draw();
             $('#search_results_pan').collapse('show');
-            /*$('#search_results').DataTable( {
-                    data: json.features,
-              } ); */
           }
           else{
             alert("No search results");
           }
         },
         error: function(xhr,errmsg,err){
+          alert('!!!');
           console.log(xhr.status + ": " + xhr.responseText);
         }
 

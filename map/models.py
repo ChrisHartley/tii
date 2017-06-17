@@ -18,6 +18,9 @@ class parcel(models.Model):
 
     geometry = models.MultiPolygonField(srid=2965)
 
+    @property
+    def ll_registration(self):
+            return self.registration_set
     # Returns the string representation of the model.
     def __unicode__(self):              # __unicode__ on Python 2
         return '{0} - {1}'.format(self.street_address, self.parcel_number)

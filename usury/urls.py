@@ -16,12 +16,17 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from map.views import MapTemplateView, ParcelDetailView, ParcelListView
+from landlord_registry.views import RegistrationDetailView, RegistrationListView
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', MapTemplateView.as_view(), name='map'),
     url(r'^parcel/(?P<parcel>[0-9]+)/$', ParcelDetailView.as_view(), name='parcel_detail'),
     url(r'^parcel/bbox/(?P<bbox>.*)/$', ParcelListView.as_view(), name='parcel_bbox_list'),
+    url(r'^parcel/search/', ParcelListView.as_view(), name='parcel_search_list'),
+    url(r'^landlord/(?P<parcel>[0-9]+)/$', RegistrationDetailView.as_view(), name='registration_detail'),
+    url(r'^landlord/bbox/(?P<bbox>.*)/$', RegistrationListView.as_view(), name='landlord_bbox_list'),
+
 
 
 ]
