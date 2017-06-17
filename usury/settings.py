@@ -135,3 +135,8 @@ SERIALIZATION_MODULES = {
     #'geojson-custom': 'map.utils.geojson_serializer'
     'geojsonid': 'map.utils'
 }
+# Production settings are kept in a separate file, settings_production.py
+try:
+    from settings_production import *
+except ImportError:
+    pass
