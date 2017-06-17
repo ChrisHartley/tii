@@ -25,7 +25,7 @@ SECRET_KEY = '*zoajk)5o5p-a(4qhvhhj*=%o@t4kfa2ga((g08g7f6b(hu!m8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [indianapolis.anymouse.org,]
 
 
 # Application definition
