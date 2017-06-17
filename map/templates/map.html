@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/map.css" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-3.1.3/pdfmake-0.1.27/dt-1.10.15/b-1.3.1/b-html5-1.3.1/b-print-1.3.1/r-2.1.1/datatables.min.css"/>
+
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.2.0/build/ol-debug.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.15/proj4-src.js"></script>
+
+
+    <title>Landlord Registry Viwer :: Usury is Sin :: Indianapolis</title>
+    <style type="text/css">
+      body { overflow: hidden; }
+
+      .navbar-offset { margin-top: 50px; }
+      #map { position: absolute; top: 50px; bottom: 0px; left: 0px; right: 0px; }
+      #map .ol-zoom { font-size: 1.2em; }
+
+      .zoom-top-opened-sidebar { margin-top: 5px; }
+      .zoom-top-collapsed { margin-top: 45px; }
+
+      .mini-submenu{
+        display:none;
+        background-color: rgba(255, 255, 255, 0.46);
+        border: 1px solid rgba(0, 0, 0, 0.9);
+        border-radius: 4px;
+        padding: 9px;
+        /*position: relative;*/
+        width: 42px;
+        text-align: center;
+      }
+
+      .mini-submenu-left {
+        position: absolute;
+        top: 60px;
+        left: .5em;
+        z-index: 40;
+      }
+      .mini-submenu-right {
+        position: absolute;
+        top: 60px;
+        right: .5em;
+        z-index: 40;
+      }
+
+      #map { z-index: 35; }
+
+      .sidebar { z-index: 45; }
+
+      #layers {overflow-y: scroll;}
+      .main-row { position: relative; top: 0; }
+
+      .mini-submenu:hover{
+        cursor: pointer;
+      }
+
+      .slide-submenu{
+        background: rgba(0, 0, 0, 0.45);
+        display: inline-block;
+        padding: 0 8px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #search_results_pan {
+        margin: .5em;
+        padding: .25em;
+        margin-right: 1em;
+        background-color: rgba(255, 255, 255, 1);
+        z-index: 40;
+
+      }
+
+      #search_results_wrapper {
+        background-color: white;
+
+      }
+
+    </style>
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-3.1.3/pdfmake-0.1.27/dt-1.10.15/b-1.3.1/b-html5-1.3.1/b-print-1.3.1/r-2.1.1/datatables.min.js"></script>
+    <script type="text/javascript">
+
+      function applyMargins() {
+        var leftToggler = $(".mini-submenu-left");
+        var rightToggler = $(".mini-submenu-right");
+        if (leftToggler.is(":visible")) {
+          $("#map .ol-zoom")
+            .css("margin-left", 0)
+            .removeClass("zoom-top-opened-sidebar")
+            .addClass("zoom-top-collapsed");
+        } else {
+          $("#map .ol-zoom")
+            .css("margin-left", $(".sidebar-left").width())
+            .removeClass("zoom-top-opened-sidebar")
+            .removeClass("zoom-top-collapsed");
+        }
+        if (rightToggler.is(":visible")) {
+          $("#map .ol-rotate")
+            .css("margin-right", 0)
+            .removeClass("zoom-top-opened-sidebar")
+            .addClass("zoom-top-collapsed");
+        } else {
+          $("#map .ol-rotate")
+            .css("margin-right", $(".sidebar-right").width())
+            .removeClass("zoom-top-opened-sidebar")
+            .removeClass("zoom-top-collapsed");
+        }
+      }
+
+      function isConstrained() {
+        return $("div.mid").width() == $(window).width();
+      }
+
+      function applyInitialUIState() {
+        if (isConstrained()) {
+          $(".sidebar-left .sidebar-body").fadeOut('slide');
+          $(".sidebar-right .sidebar-body").fadeOut('slide');
+          $('.mini-submenu-left').fadeIn();
+          $('.mini-submenu-right').fadeIn();
+        }
+      }
+
+      $(function(){
+        $('.sidebar-left .slide-submenu').on('click',function() {
+          var thisEl = $(this);
+          thisEl.closest('.sidebar-body').fadeOut('slide',function(){
+            $('.mini-submenu-left').fadeIn();
+            applyMargins();
+          });
+        });
+
+        $('.mini-submenu-left').on('click',function() {
+          var thisEl = $(this);
+          $('.sidebar-left .sidebar-body').toggle('slide');
+          thisEl.hide();
+          applyMargins();
+        });
+
+        $('.sidebar-right .slide-submenu').on('click',function() {
+          var thisEl = $(this);
+          thisEl.closest('.sidebar-body').fadeOut('slide',function(){
+            $('.mini-submenu-right').fadeIn();
+            applyMargins();
+          });
+        });
+
+        $('.mini-submenu-right').on('click',function() {
+          var thisEl = $(this);
+          $('.sidebar-right .sidebar-body').toggle('slide');
+          thisEl.hide();
+          applyMargins();
+        });
+
+        $(window).on("resize", applyMargins);
+
+        applyInitialUIState();
+        applyMargins();
+      });
+    </script>
+
+
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class='navbar-brand' href='#'><img alt='This Is Indianapolis logo' class="navbar-brand" src="/static/logo.png"></a>
+
+
+          </div>
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li><a href="#">Separated link</a></li>
+                  <li class="divider"></li>
+                  <li><a href="#">One more separated link</a></li>
+                </ul>
+              </li>
+            </ul>
+            <form class="navbar-form navbar-left" role="search" id="top-search-box">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Street address or landlord name" id="query"/>
+              </div>
+              <button type="submit" class="btn btn-default" id="top-search-button">Search</button>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#">Link</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Download <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="">Download full registry as csv</a></li>
+                  <!-- <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li><a href="#">Separated link</a></li> -->
+                </ul>
+              </li>
+            </ul>
+
+            </div><!-- /.navbar-collapse -->
+
+            </div><!-- /.container-fluid -->
+
+          </nav>
+
+        </div>
+
+      <div class="navbar-offset"></div>
+      <div id="map">
+      </div>
+      <div class="row main-row">
+        <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">
+          <div class="panel-group sidebar-body" id="accordion-left">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" href="#layers">
+                    <i class="fa fa-list-alt"></i>
+                    Filter
+                  </a>
+                  <span class="pull-right slide-submenu">
+                    <i class="fa fa-chevron-left"></i>
+                  </span>
+                </h4>
+              </div>
+              <div id="layers" class="panel-collapse collapse in">
+                <div class="panel-body list-group">
+                  {%comment%}
+                  {% load crispy_forms_tags %}
+                  {% crispy filter.form %}
+{%endcomment%}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="col-sm-4 col-md-6 mid"></div>
+        <div class="col-sm-4 col-md-3 sidebar sidebar-right pull-right">
+          <div class="panel-group sidebar-body" id="accordion-right">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" href="#taskpane">
+                    <i class="fa fa-tasks"></i>
+                    Properties
+                  </a>
+                  <span class="pull-right slide-submenu">
+                    <i class="fa fa-chevron-right"></i>
+                  </span>
+                </h4>
+              </div>
+              <div id="taskpane" class="panel-collapse collapse in">
+                  <div class="panel-body">
+                    <div id="properties">
+                      <p>Welcome to a geospatial display of the Indianapolis Landlord Registry.</p>
+                      <p>This tool is not affiliated with the City of Indianapolis, the Department of Business and Neighborhood Services, Renew Indianapolis or any other entity</p>
+                      <p>Search using the form to the left, then click on a property for more information.</p>
+                    </div>
+                    <form action="" method="POST" id="updateForm"/>
+                    <div id='filter'></div>
+                    </form>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mini-submenu mini-submenu-left pull-left">
+        <i class="fa fa-list-alt"></i>
+      </div>
+      <div class="mini-submenu mini-submenu-right pull-right">
+        <i class="fa fa-tasks"></i>
+      </div>
+  <!--    <div class="container"> -->
+        <div class="navbar-fixed-bottom">
+          <div id="clicky" class="pull-right fa fa-chevron-down slide-submenu"></div>
+          <span id="search_results_pan" class="well well-lg"><table id="search_results" class="table table-responsive table-condensed table-bordered" cellspacing="0" width="100%"></table></span>
+        </div>
+      <!-- </div> -->
+    <script>
+
+
+      var parser = new ol.format.WMTSCapabilities();
+      var map;
+      proj4.defs("EPSG:2965","+proj=tmerc +lat_0=37.5 +lon_0=-85.66666666666667 +k=0.999966667 +x_0=99999.99989839978 +y_0=249999.9998983998 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs");
+
+      var styleCache = {};
+
+      var styleFunction = function(feature) {
+        var parcel = feature.get('parcel_number');
+        var style = styleCache[parcel];
+        if (!style) {
+          var structure_type;
+          structure_type = feature.get('has_building', false);
+          var icon;
+          var color;
+          var fill;
+          var stroke;
+        //  console.log(structure_type);
+          if (structure_type){
+            fill = new ol.style.Fill({
+              color: 'rgba(255,0,0,0.4)' //red
+            });
+            stroke = new ol.style.Stroke({
+              //color: '#3399CC',
+              color: 'black',
+              width: 1.25
+            });
+          }
+          else{
+            fill = new ol.style.Fill({
+              color: 'rgba(0,0,255,0.4)' //blue
+            });
+            stroke = new ol.style.Stroke({
+              color: 'black',
+              width: 1.25
+            });
+            color = 'black';
+          }
+
+          style = new ol.style.Style({
+            color: color,
+            image: new ol.style.Circle({
+              fill: fill,
+              stroke: stroke,
+              radius: 5,
+              //imgSize: [10, 10]
+            }),
+            fill: fill,
+            stroke: stroke
+          });
+          styleCache[parcel] = style;
+          return style;
+        };
+        return styleCache[parcel];
+      }
+
+
+
+      var stroke = new ol.style.Stroke({color: 'black', width: 2});
+      var fill = new ol.style.Fill({color: '#f03b20'});
+
+      var styles = {
+        'search': new ol.style.Style({
+          image: new ol.style.Circle({
+            fill: fill,
+            stroke: stroke,
+          //  points: 4,
+            radius: 10,
+            //angle: Math.PI / 4
+          })
+        }),
+        'polygon': new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: [255, 255, 255, .1]
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#3399CC',
+            width: 1.25
+          }),
+        }),
+        'parcel': new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: [255,255,255,1]
+          }),
+          stroke: new ol.style.Stroke({
+            color: [255,255,255,1],
+            width: 1,
+          }),
+        }),
+      }
+      var geojson_format = new ol.format.GeoJSON()
+
+      var parcels = new ol.layer.Vector({
+        title: 'Parcels',
+        projection: 'EPSG:4326',
+        maxResolution: '6',
+        source: new ol.source.Vector({
+          format: new ol.format.GeoJSON(),
+          url: function(extent){
+            return "/parcel/bbox/"+extent.join(',')+"/"
+
+          },
+        style: styles['parcel11'],
+        strategy: ol.loadingstrategy.bbox,
+        }),
+      });
+
+
+
+      $(document).ready(function(){
+        $.get('/static/WMTSCapabilities.xml', function(text){
+          var result = parser.read(text);
+          var options = ol.source.WMTS.optionsFromCapabilities(result, {
+            layer: '2016Photography_Labels', matrixSet: 'default028mm'
+          });
+
+          map = new ol.Map({
+            layers: [
+              // new ol.layer.Tile({
+              //   source: new ol.source.OSM(),
+              //   opacity: 0.7
+              // }),
+              new ol.layer.Tile({
+                opacity: 1,
+                source: new ol.source.WMTS(options)
+              }),
+              parcels,
+            ],
+          //  overlays: [overlay],
+            target: 'map',
+            view: new ol.View({
+              center: [188266, 1649330],
+              zoom: 20,
+              maxZoom: 21,
+              //maxZoom: 3, //doesn't work?
+              projection: 'EPSG:2965'
+            })
+          });
+
+          map.on('singleclick', function(evt) {
+            var latlon = ol.proj.transform(evt.coordinate, 'EPSG:2965', 'EPSG:4326');
+            lat = latlon[0]
+            lon = latlon[1]
+
+            var feature = map.forEachFeatureAtPixel(evt.pixel,
+              function(feature, layer) {
+                return feature;
+              });
+
+            if (feature) {
+              //alert(feature.values_.id);
+              $.get('parcel/'+feature.values_.id+'/', function(data){
+                parcel = data.features[0].properties;
+              //image = '<img src="https://maps.googleapis.com/maps/api/streetview?size=300x300&key=AIzaSyDA2qmHbfbl1-I1BEshcKQxCgH7beKJDW0&location='+parcel.street_address+', Indianapolis, IN" width=300 height=300/>&nbsp;<br/><small>Image may not be accurate or current.</small>'
+              image = '<img src="https://maps.googleapis.com/maps/api/streetview?size=300x300&key=AIzaSyDA2qmHbfbl1-I1BEshcKQxCgH7beKJDW0&location='+lon + ','+lat+'" allowfullscreen="" width=300 height=300/>&nbsp;<br/><small>Image may not be accurate or current.</small>'
+              iframe = '<iframe src="https://www.google.com/maps/embed/v1/streetview?&key=AIzaSyABkapFATusLHbmOnndPBjx-JsGiO5TDkM&location='+lon + ','+lat+'" allowfullscreen="" height="300" width="300">';
+              html = '<ul class="list-unstyled">'+
+                '<li>'+parcel.street_address+' '+parcel.zipcode+' (<a href="http://maps.indy.gov/AssessorPropertyCards.Reports.Service/Service.svc/PropertyCard/'+parcel.id+'">'+parcel.id+'</a>)</li>'+
+                '<li>Assessor Classification: '+parcel.property_class+'</li>'+
+                '<li>Improvement value: '+parcel.improvement_value+' Land Value: '+parcel.land_value+'</li>'+
+                '<li>Homestead exemption: '+parcel.homestead_exemption+'</li>'+
+                //iframe;
+                image;
+              $('#properties').html(html);
+            });
+
+            }
+        });
+      });
+    });
+
+
+
+    $(document).on('click', '#clicky', function(event){
+      $('#search_results_pan').collapse("toggle");
+    });
+
+
+    var geojson_format = new ol.format.GeoJSON()
+
+    $('#search_results').DataTable( {
+            //data: json.features,
+            dom: 'Brtip',
+            buttons: [
+              'copy', 'excel', 'pdf'
+            ],
+            "columns": [
+                { "title": 'Parcel Number',
+                  "data": "properties.parcel_number" },
+                { "title": 'Street Address',
+                  "data": "properties.street_address" },
+                { "title": 'Has Building',
+                  "data": "properties.has_building" },
+                { "title": 'Interesting',
+                  "data": "properties.interesting" },
+                { "title": 'Demolition Order',
+                  "data": "properties.demolition_order" },
+                { "title": 'Repair Order',
+                  "data": "properties.repair_order" },
+                { "title": 'Notes',
+                  "data": "properties.notes" },
+            ]
+        } );
+
+
+
+    $('#top-search-box').submit(function(event){
+      event.preventDefault();
+      searchPolygons.getSource().clear();
+      $('#id_general_search').val($('#query').val()); //copy search value from top box to hidden element on form
+      $('#id_geometry_type').val('centroid'); // search results return centroids
+      $.ajax({
+        url: '',
+        type: "GET",
+        data: $('#SurplusSearchForm').serialize(),
+        success: function(json){
+          searchPolygons.getSource().addFeatures(geojson_format.readFeatures(json));
+          var extent = searchPolygons.getSource().getExtent();
+          if(extent[0]!='Infinity'){
+            map.getView().fit(extent, map.getSize())
+            console.log(json.features);
+            //$('#search_results').DataTable().destory(remove=False);
+            $('#search_results').DataTable().clear();
+            $('#search_results').DataTable().rows.add(json.features).draw();
+            $('#search_results_pan').collapse('show');
+            /*$('#search_results').DataTable( {
+                    data: json.features,
+              } ); */
+          }
+          else{
+            alert("No search results");
+          }
+        },
+        error: function(xhr,errmsg,err){
+          console.log(xhr.status + ": " + xhr.responseText);
+        }
+
+      });
+    });
+
+
+    </script>
+  </body>
+</html>
