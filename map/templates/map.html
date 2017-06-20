@@ -459,18 +459,18 @@
               //   source: new ol.source.OSM(),
               //   opacity: 0.7
               // }),
-              // new ol.layer.Tile({
-              //   opacity: 1,
-              //   source: new ol.source.WMTS(options)
-              // }),
               new ol.layer.Tile({
-                visible: true,
-                preload: Infinity,
-                source: new ol.source.BingMaps({
-                  key: 'Ai7PF3vCUnfoc6BgOpQhQuTx7MVB0Hvrx-6nBbRMgo5geEY4cJz_XWGeEB4yJf1s',
-                  imagerySet: 'AerialWithLabels'
-                }),
+                opacity: 1,
+                source: new ol.source.WMTS(options)
               }),
+              // new ol.layer.Tile({
+              //   visible: true,
+              //   preload: Infinity,
+              //   source: new ol.source.BingMaps({
+              //     key: 'Ai7PF3vCUnfoc6BgOpQhQuTx7MVB0Hvrx-6nBbRMgo5geEY4cJz_XWGeEB4yJf1s',
+              //     imagerySet: 'AerialWithLabels'
+              //   }),
+              // }),
               parcels,
               registrations,
             ],
