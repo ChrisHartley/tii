@@ -426,15 +426,15 @@
             return "/parcel/bbox/"+extent.join(',')+"/"
 
           },
+        }),
         style:  new ol.style.Style({
                 fill: new ol.style.Stroke({
-                color: 'transparent'
+                color: [255,255,255,1],
               })
         }),
-        visible: false,
         strategy: ol.loadingstrategy.bbox,
-        }),
       });
+
 
       var searchPolygons = new ol.layer.Vector({
               title: 'Search Results',
@@ -471,7 +471,7 @@
               //     imagerySet: 'AerialWithLabels'
               //   }),
               // }),
-              parcels,
+              //parcels,
               registrations,
             ],
           //  overlays: [overlay],
