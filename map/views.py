@@ -19,7 +19,7 @@ class ParcelDetailView(DetailView):
     slug_field = 'parcel_number'
     slug_url_kwarg = 'parcel'
     def render_to_response(self, context, **response_kwargs):
-        s = serialize('geojson',
+        s = serialize('geojsonid',
                           [context.get('parcel'),],
                           geometry_field='geometry',
                           use_natural_foreign_keys=True,

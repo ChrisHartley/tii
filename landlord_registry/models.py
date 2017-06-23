@@ -20,3 +20,7 @@ class registration(models.Model):
     def __unicode__(self):              # __unicode__ on Python 2
         #return '{0} - {1} - {2}'.format(self.parcel, self.record, self.landlord[0:15]+'...')
         return 'Landlord: {0}, Manager: {1}'.format(self.landlord[0:25], self.manager[0:25])
+
+    def save(self, *args, **kwargs):
+        self.geometry = self.parcel.geometry
+        super(registration, self).save(*args, **kwargs)

@@ -8,8 +8,9 @@ class parcel(models.Model):
     parcel_number = models.CharField(max_length=7, primary_key=True)
     id = models.CharField(max_length=7, blank=True)
     street_address = models.CharField(max_length=254, blank=False)
-    zipcode = models.CharField(max_length=5, blank=False)
+    zipcode = models.CharField(max_length=5, blank=True)
 
+    owner_name = models.CharField(max_length=501, blank=True)
     improvement_value = models.IntegerField(null=True)
     land_value = models.IntegerField(null=True)
 

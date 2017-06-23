@@ -16,7 +16,7 @@ class RegistrationDetailView(DetailView):
     slug_url_kwarg = 'parcel'
 
     def render_to_response(self, context, **response_kwargs):
-        print context
+        #print context
         s = serialize('geojson',
                           [context.get('registration'),],
                           geometry_field='geometry',
