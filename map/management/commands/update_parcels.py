@@ -17,29 +17,30 @@ class Command(BaseCommand):
         source = 'http://imaps.indy.gov/arcgis/rest/services/MapIndyProperty/MapServer/'
         service = arcgis.ArcGIS(source)
         layer_id = 10
-        query = "PARCEL_C like '1040%'"
-        self.stdout.write("Fetching data from server... This will take some time/memory, there are ~345k features.")
-        shapes = service.get(layer_id, query)
-        self.stdout.write("Creating/updating parcel objects...")
-        for parcel in tqdm(shapes['features']):
-            parcel_number=parcel['properties']['PARCEL_C']
-            street_address=parcel['properties']['FULL_STNAME']
-            improvement_value = parcel['properties']['ASSESSORYEAR_IMPTOTAL']
-            land_value = parcel['properties']['ASSESSORYEAR_LANDTOTAL']
-            owner_name = parcel['properties']['FULLOWNERNAME']
-            zipcode=parcel['properties'].get('ZIPCODE', '')
-            property_class = parcel['properties']['PROPERTY_CLASS']
-            geom = MultiPolygon(GEOSGeometry(str(parcel['geometry'])))
-            p = parcel_model(
-                parcel_number=parcel_number,
-                street_address=street_address,
-                zipcode=zipcode,
-                improvement_value=improvement_value,
-                land_value=land_value,
-                property_class=property_class,
-                geometry=geom
-            )
-            try:
-                p.save()
-            except Exception as e:
-                print 'Error: ', e
+        for i in range(1,10):
+            query = "PARCEL_C like '{0}%'".format(i)
+            self.stdout.write("Fetching data from server... township {0}".format(i,))
+            shapes = service.get(layer_id, query)
+            self.stdout.write("Creating/updating parcel objects...")
+            for parcel in tqdm(shapes['features']):
+                parcel_number=parcel['properties']['PARCEL_C']
+                street_address=parcel['properties']['FULL_STNAME']
+                improvement_value = parcel['properties']['ASSESSORYEAR_IMPTOTAL']
+                land_value = parcel['properties']['ASSESSORYEAR_LANDTOTAL']
+                owner_name = parcel['properties']['FULLOWNERNAME']
+                zipcode=parcel['properties'].get('ZIPCODE', '')
+                property_class = parcel['properties']['PROPERTY_CLASS']
+                geom = MultiPolygon(GEOSGeometry(str(parcel['geometry'])))
+                p = parcel_model(
+                    parcel_number=parcel_number,
+                    street_address=street_address,
+                    zipcode=zipcode,
+                    improvement_value=improvement_value,
+                    land_value=land_value,
+                    property_class=property_class,
+                    geometry=geom
+                )
+                try:
+                    p.save()
+                except Exception as e:
+                    print 'Error: ', e
