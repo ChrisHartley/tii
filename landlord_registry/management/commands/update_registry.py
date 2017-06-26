@@ -17,6 +17,41 @@ from datetime import datetime
 from landlord_registry.models import registration
 from map.models import parcel
 
+"""
+This utility downloads the latest landlord registry spreadsheet from the
+Indianapolis Department of Business and Neighborhood Services (Code Enforcement)
+and then looks up each registration number one at a time and scrapes relevant
+data into a landlord registration object.
+
+Since Accella, the system that hosts the registration data, is incredibly
+stupid and requires javascript we need to scrape with selenium and a headless
+browser.
+
+The alterative way to do this would be to brute force the record address space,
+which we can do without javascript and hence just with mechanize or urllib2.
+The trade off is just in the number of requests - selenium is probably 1/3 the
+speed but the total address space is more than 3x as large so selenium wins.
+
+I wrote another tool to brute force record address space, you can see it here:
+https://github.com/ChrisHartley/alohomora-landlord-registry/blob/master/scrape-accela.py
+
+
+
+The filename of the landlord registry spreadsheet datetime stamped so we need
+to access the page linking to it to get the current file name.
+
+As with any scraping project this is a fragile process. It should be easy to
+fix when it breaks (eg when they re-organize the BNS website) by just changing
+the base URL and CSS selector for the file link but golly wouldn't that be
+annoying.
+
+Fixing Accella scraping if that breaks is more annoying and tedious but
+essentially the same.
+
+"""
+
+
+
 def get_record_html(driver, record_number):
     url = 'https://permitsandcases.indy.gov/CitizenAccess/Cap/CapHome.aspx?module=Licenses&TabName=Licenses&TabList=HOME%7C0%7CPermits%7C1%7CEnforcement%7C2%7CLicenses%7C3%7CHHC%7C4%7CPlanning%7C5%7CCurrentTabIndex%7C3'
     html = ''
@@ -109,6 +144,7 @@ def extract_record_from_html(html):
         pass
     return record
 
+
 def fetch_latest_list():
     url = 'http://www.indy.gov/eGov/City/DCE/Licenses/Pages/Home.aspx'
     try:
@@ -137,14 +173,14 @@ def fetch_latest_list():
             with open(os.path.basename(file_name), "wb") as local_file:
                 local_file.write(f.read())
 
-    #file_name = 'Landlord_Registration_2017-06-11-04-00-21.xls'
     reg_book = xlrd.open_workbook(filename=file_name)
     reg_sheet = reg_book.sheet_by_index(0)
 
 
     driver = webdriver.PhantomJS()
+    # Can pick one of these for testing
     #record_number = 'LLRR17-000556' # single property, landlord and manager
-    record_number = 'LLRR17-000574' #multiple properties registered, only landlord
+    #record_number = 'LLRR17-000574' #multiple properties registered, only landlord
 
     # iterate through spreadsheet starting at the second row
     for row_idx in range(1, reg_sheet.nrows):
@@ -181,7 +217,6 @@ def fetch_latest_list():
                         record=this_record,
                         )
                     r.save()
-#        reg = registration()
 
     driver.quit()
 
