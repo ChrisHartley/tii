@@ -12,7 +12,7 @@ based on foreign keys. Maybe allow the user to say which related objects to incl
 class Serializer(GEOJSONSerializer):
 
     def _init_options(self):
-        super()._init_options()
+        super(Serializer, self)._init_options()
         self.geometry_field = self.json_kwargs.pop('geometry_field', None)
         self.srid = self.json_kwargs.pop('srid', 4326)
         self.blah = 'blah blah blah'
